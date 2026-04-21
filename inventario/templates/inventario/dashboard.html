@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockSmart — Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #F7F4EF; }
+        .sidebar {
+            position: fixed; left: 0; top: 0; bottom: 0; width: 240px;
+            background: #1C1917; padding: 24px 16px;
+            display: flex; flex-direction: column;
+        }
+        .logo { font-size: 1.4rem; font-weight: 800; color: #D97706; margin-bottom: 4px; }
+        .logo-sub { font-size: 0.75rem; color: #78716C; margin-bottom: 32px; }
+        .nav-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px; border-radius: 8px;
+            color: #A8A29E; font-size: 0.9rem; cursor: pointer;
+            margin-bottom: 4px; text-decoration: none;
+        }
+        .nav-item.active, .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+        .sidebar-bottom { margin-top: auto; }
+        .user-info { padding: 12px 14px; border-top: 1px solid #292524; }
+        .user-name { color: white; font-weight: 600; font-size: 0.9rem; }
+        .user-role { color: #78716C; font-size: 0.78rem; }
+        .main { margin-left: 240px; padding: 32px; }
+        .page-title { font-size: 1.6rem; font-weight: 700; color: #1C1917; }
+        .page-sub { color: #78716C; font-size: 0.9rem; margin-top: 4px; margin-bottom: 32px; }
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+        .stat-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .stat-num { font-size: 2rem; font-weight: 800; }
+        .stat-label { font-size: 0.8rem; color: #78716C; margin-top: 4px; }
+        .red { color: #DC2626; } .yellow { color: #CA8A04; } .green { color: #16A34A; }
+        form.logout button {
+            background: none; border: none; color: #78716C;
+            font-size: 0.9rem; cursor: pointer; padding: 10px 14px;
+            width: 100%; text-align: left; border-radius: 8px;
+        }
+        form.logout button:hover { background: rgba(255,255,255,0.08); color: white; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">StockSmart</div>
+        <div class="logo-sub">Gestión de inventario</div>
+        <a class="nav-item active" href="/">🏠 Dashboard</a>
+        <a class="nav-item" href="#">📦 Productos</a>
+        <a class="nav-item" href="#">🛒 Registrar Venta</a>
+        <a class="nav-item" href="#">📊 Historial</a>
+        <div class="sidebar-bottom">
+            <div class="user-info">
+                <div class="user-name">{{ request.user.username }}</div>
+                <div class="user-role">Administrador</div>
+            </div>
+            <form method="post" action="/logout/" class="logout">
+                {% csrf_token %}
+                <button type="submit">🚪 Cerrar sesión</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub">Bienvenido, {{ request.user.username }} · Resumen del inventario</div>
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-num red">0</div>
+                <div class="stat-label">🚨 Alertas urgentes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num yellow">0</div>
+                <div class="stat-label">⚠️ Precaución</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num green">0</div>
+                <div class="stat-label">✅ Productos OK</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num">0</div>
+                <div class="stat-label">📦 Total productos</div>
+            </div>
+        </div>
+        <p style="color:#78716C;">Las alertas aparecerán aquí cuando conectes el motor de cálculo en el Sprint 6.</p>
+    </div>
+</body>
+</html>
