@@ -22,7 +22,7 @@
         }
         .nav-item.active, .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
         .sidebar-bottom { margin-top: auto; }
-        .user-info { padding: 12px 14px; border-top: 1px solid #292524; }
+        .user-info { padding: 12px 14px; border-top: 1px solid #292524; margin-bottom: 8px; }
         .user-name { color: white; font-weight: 600; font-size: 0.9rem; }
         .user-role { color: #78716C; font-size: 0.78rem; }
         .main { margin-left: 240px; padding: 32px; }
@@ -46,43 +46,9 @@
         <div class="logo">StockSmart</div>
         <div class="logo-sub">Gestión de inventario</div>
         <a class="nav-item active" href="/">🏠 Dashboard</a>
-        <a class="nav-item" href="#">📦 Productos</a>
+        <a class="nav-item" href="/productos/">📦 Productos</a>
         <a class="nav-item" href="#">🛒 Registrar Venta</a>
         <a class="nav-item" href="#">📊 Historial</a>
         <div class="sidebar-bottom">
             <div class="user-info">
-                <div class="user-name">{{ request.user.username }}</div>
-                <div class="user-role">Administrador</div>
-            </div>
-            <form method="post" action="/logout/" class="logout">
-                {% csrf_token %}
-                <button type="submit">🚪 Cerrar sesión</button>
-            </form>
-        </div>
-    </div>
-
-    <div class="main">
-        <div class="page-title">Dashboard</div>
-        <div class="page-sub">Bienvenido, {{ request.user.username }} · Resumen del inventario</div>
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-num red">0</div>
-                <div class="stat-label">🚨 Alertas urgentes</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-num yellow">0</div>
-                <div class="stat-label">⚠️ Precaución</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-num green">0</div>
-                <div class="stat-label">✅ Productos OK</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-num">0</div>
-                <div class="stat-label">📦 Total productos</div>
-            </div>
-        </div>
-        <p style="color:#78716C;">Las alertas aparecerán aquí cuando conectes el motor de cálculo en el Sprint 6.</p>
-    </div>
-</body>
-</html>
+                <di

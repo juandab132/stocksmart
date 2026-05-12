@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockSmart — Productos</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #F7F4EF; }
+        .sidebar {
+            position: fixed; left: 0; top: 0; bottom: 0; width: 240px;
+            background: #1C1917; padding: 24px 16px;
+            display: flex; flex-direction: column;
+        }
+        .logo { font-size: 1.4rem; font-weight: 800; color: #D97706; margin-bottom: 4px; }
+        .logo-sub { font-size: 0.75rem; color: #78716C; margin-bottom: 32px; }
+        .nav-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px; border-radius: 8px;
+            color: #A8A29E; font-size: 0.9rem; cursor: pointer;
+            margin-bottom: 4px; text-decoration: none;
+        }
+        .nav-item.active, .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+        .sidebar-bottom { margin-top: auto; }
+        .user-info { padding: 12px 14px; border-top: 1px solid #292524; margin-bottom: 8px; }
+        .user-name { color: white; font-weight: 600; font-size: 0.9rem; }
+        .user-role { color: #78716C; font-size: 0.78rem; }
+        form.logout button {
+            background: none; border: none; color: #78716C;
+            font-size: 0.9rem; cursor: pointer; padding: 10px 14px;
+            width: 100%; text-align: left; border-radius: 8px;
+        }
+        form.logout button:hover { background: rgba(255,255,255,0.08); color: white; }
+        .main { margin-left: 240px; padding: 32px; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .page-title { font-size: 1.6rem; font-weight: 700; color: #1C1917; }
+        .btn-primary {
+            background: #D97706; color: white; border: none;
+            padding: 10px 20px; border-radius: 8px; font-size: 0.9rem;
+            font-weight: 600; cursor: pointer;
+        }
+        .btn-primary:hover { background: #B45309; }
+        .messages { margin-bottom: 20px; }
+        .msg-success { background: #DCFCE7; color: #16A34A; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; }
+        .msg-error   { background: #FEE2E2; color: #DC2626; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; }
+        table { width: 100%; background: white; border-radius: 12px; border-collapse: collapse; box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow: hidden; }
+        thead { background: #1C1917; }
+        th { padding: 14px 16px; text-align: left; color: #A8A29E; font-size: 0.75rem; text-transform: uppercase; }
+        td { padding: 14px 16px; border-bottom: 1px solid #F0EDE8; font-size: 0.9rem; color: #1C1917; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #FAFAF9; }
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .badge-red    { background: #FEE2E2; color: #DC2626; }
+        .badge-yellow { background: #FEF9C3; color: #CA8A04; }
+        .badge-green  { background: #DCFCE7; color: #16A34A; }
+        .stock-bar { width: 80px; height: 6px; background: #E2DDD6; border-radius: 4px; display: inline-block; vertical-align: middle; margin-right: 8px; }
+        .stock-fill { height: 100%; border-radius: 4px; }
+        .empty-state { text-align: center; padding: 60px; color: #78716C; }
+
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; }
+        .modal-overlay.open { display: flex; }
+        .modal { background: white; border-radius: 16px; width: 520px; max-width: 95vw; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid #E2DDD6; }
+        .modal-title { font-weight: 700; font-size: 1.1rem; }
+        .modal-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #78716C; }
+        .modal-body { padding: 24px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 0.75rem; font-weight: 600; color: #78716C; text-transform: uppercase; margin-bottom: 6px; }
+        .form-input, .form-select {
+            width: 100%; padding: 10px 14px;
+            border: 1px solid #E2DDD6; border-radius: 8px;
+            font-size: 0.9rem; color: #1C1917; outline: none;
+        }
+        .form-input:focus, .form-select:focus { border-color: #D97706; }
+        .form-hint { font-size: 0.75rem; color: #A8A29E; margin-top: 4px; }
+        .modal-footer { display: flex; gap: 10px; justify-content: flex-end; padding: 16px 24px; border-top: 1px solid #E2DDD6; }
+        .btn-secondary { background: #F7F4EF; color: #1C1917; border: 1px solid #E2DDD6; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="logo">StockSmart</div>
+    <div class="logo-sub">Gestión de inventario</div>
+    <a class="nav-item" href="/">🏠 Dashboard</a>
+    <a class="nav-item active" href="/productos/">📦 Productos</a>
+    <a class="nav-item" href="#">🛒 Registrar Venta</a>
+    <a class="nav-item" href="#">📊 Historial</a>
+    <div class="sidebar-bottom">
+        <div class="user-info">
+            <div class="user-name">{{ request.user.username }}</div>
+            <div class="user-role">Administrador</div>
+        </div>
+        <form method="post" action="/logout/" class="logout">
+            {% csrf_token %}
+            <button type="submit">🚪 Cerrar sesión</button>
+        </form>
+    </div>
+</div>
+
+<div class="main">
+    <div class="page-header">
+        <div class="page-title">📦 Productos</div>
+        <button class="btn-primary" onclick="document.getElementById('modal-producto').classList.add('open')">
+            + Nuevo producto
+        </button>
+    </div>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="{% if message.tags == 'success' %}msg-success{% else %}msg-error{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if products %}
+    <table>
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Categoría</th>
+                <th>Stock actual</th>
+                <th>Stock mín.</th>
+                <th>Lead time</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td><strong>{{ product.name }}</strong></td>
+                <td>{{ product.get_category_display }}</td>
+                <td>
+                    {% if product.safety_stock > 0 %}
+                        {% widthratio product.current_stock product.safety_stock 100 as pct %}
+                    {% else %}
+                        {% with pct=100 %}{% endwith %}
+                    {% endif %}
+                    <div class="stock-bar">
+                        <div class="stock-fill" style="width: {% if product.current_stock >= product.safety_stock %}100{% elif product.current_stock > 0 %}40{% else %}5{% endif %}%; background: {% if product.current_stock >= product.safety_stock %}#16A34A{% elif product.current_stock > 0 %}#CA8A04{% else %}#DC2626{% endif %};"></div>
+                    </div>
+                    {{ product.current_stock }} {{ product.unit }}
+                </td>
+                <td>{{ product.safety_stock }} {{ product.unit }}</td>
+                <td>{{ product.lead_time_days }} días</td>
+                <td>
+                    {% if product.current_stock <= 0 %}
+                        <span class="badge badge-red">🚨 Urgente</span>
+                    {% elif product.current_stock <= product.safety_stock %}
+                        <span class="badge badge-yellow">⚠️ Precaución</span>
+                    {% else %}
+                        <span class="badge badge-green">✅ OK</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <p style="font-size: 2rem; margin-bottom: 12px;">📦</p>
+        <p style="font-weight: 600; margin-bottom: 8px;">No tienes productos registrados</p>
+        <p>Haz clic en "+ Nuevo producto" para empezar.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal nuevo producto -->
+<div class="modal-overlay" id="modal-producto">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">+ Nuevo Producto</div>
+            <button class="modal-close" onclick="document.getElementById('modal-producto').classList.remove('open')">✕</button>
+        </div>
+        <form method="post" action="/productos/">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Nombre *</label>
+                        <input type="text" name="name" class="form-input" placeholder="Ej: Arroz Blanco 1kg" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Categoría *</label>
+                        <select name="category" class="form-select" required>
+                            <option value="">Selecciona...</option>
+                            <option value="granos">Granos y cereales</option>
+                            <option value="aceites">Aceites</option>
+                            <option value="aseo">Aseo</option>
+                            <option value="lacteos">Lácteos</option>
+                            <option value="otros">Otros</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Unidad de medida *</label>
+                        <select name="unit" class="form-select" required>
+                            <option value="u">Unidades</option>
+                            <option value="kg">Kilogramos</option>
+                            <option value="l">Litros</option>
+                            <option value="g">Gramos</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Stock actual *</label>
+                        <input type="number" name="current_stock" class="form-input" min="0" value="0" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Stock mínimo *</label>
+                        <input type="number" name="safety_stock" class="form-input" min="0" value="0" required>
+                        <p class="form-hint">Cantidad que nunca debes bajar</p>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Lead time (días) *</label>
+                        <input type="number" name="lead_time_days" class="form-input" min="1" value="1" required>
+                        <p class="form-hint">Días que tarda tu proveedor</p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notas del proveedor</label>
+                    <input type="text" name="notes" class="form-input" placeholder="Ej: Proveedor Don Carlos, tel: 300...">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="document.getElementById('modal-producto').classList.remove('open')">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar producto</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>
