@@ -32,17 +32,25 @@
         }
         form.logout button:hover { background: rgba(255,255,255,0.08); color: white; }
         .main { margin-left: 240px; padding: 32px; }
-        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
         .page-title { font-size: 1.6rem; font-weight: 700; color: #1C1917; }
-        .btn-primary {
-            background: #D97706; color: white; border: none;
-            padding: 10px 20px; border-radius: 8px; font-size: 0.9rem;
-            font-weight: 600; cursor: pointer;
-        }
+        .btn-primary { background: #D97706; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
         .btn-primary:hover { background: #B45309; }
         .messages { margin-bottom: 20px; }
         .msg-success { background: #DCFCE7; color: #16A34A; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; }
         .msg-error   { background: #FEE2E2; color: #DC2626; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; }
+
+        /* Filtros */
+        .filters { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-input, .filter-select {
+            padding: 9px 14px; border: 1px solid #E2DDD6; border-radius: 8px;
+            font-size: 0.88rem; color: #1C1917; background: white; outline: none;
+        }
+        .filter-input { width: 220px; }
+        .filter-input:focus, .filter-select:focus { border-color: #D97706; }
+        .btn-filter { background: #1C1917; color: white; border: none; padding: 9px 18px; border-radius: 8px; font-size: 0.88rem; cursor: pointer; }
+        .btn-clear { background: #F7F4EF; color: #78716C; border: 1px solid #E2DDD6; padding: 9px 14px; border-radius: 8px; font-size: 0.88rem; cursor: pointer; text-decoration: none; }
+
         table { width: 100%; background: white; border-radius: 12px; border-collapse: collapse; box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow: hidden; }
         thead { background: #1C1917; }
         th { padding: 14px 16px; text-align: left; color: #A8A29E; font-size: 0.75rem; text-transform: uppercase; }
@@ -56,6 +64,10 @@
         .stock-bar { width: 80px; height: 6px; background: #E2DDD6; border-radius: 4px; display: inline-block; vertical-align: middle; margin-right: 8px; }
         .stock-fill { height: 100%; border-radius: 4px; }
         .empty-state { text-align: center; padding: 60px; color: #78716C; }
+        .btn-edit { color: #D97706; text-decoration: none; font-size: 0.85rem; font-weight: 600; margin-right: 12px; }
+        .btn-edit:hover { color: #B45309; }
+        .btn-delete { color: #DC2626; text-decoration: none; font-size: 0.85rem; font-weight: 600; }
+        .btn-delete:hover { color: #B91C1C; }
 
         /* Modal */
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; }
@@ -68,11 +80,7 @@
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
         .form-group { margin-bottom: 16px; }
         .form-label { display: block; font-size: 0.75rem; font-weight: 600; color: #78716C; text-transform: uppercase; margin-bottom: 6px; }
-        .form-input, .form-select {
-            width: 100%; padding: 10px 14px;
-            border: 1px solid #E2DDD6; border-radius: 8px;
-            font-size: 0.9rem; color: #1C1917; outline: none;
-        }
+        .form-input, .form-select { width: 100%; padding: 10px 14px; border: 1px solid #E2DDD6; border-radius: 8px; font-size: 0.9rem; color: #1C1917; outline: none; }
         .form-input:focus, .form-select:focus { border-color: #D97706; }
         .form-hint { font-size: 0.75rem; color: #A8A29E; margin-top: 4px; }
         .modal-footer { display: flex; gap: 10px; justify-content: flex-end; padding: 16px 24px; border-top: 1px solid #E2DDD6; }
@@ -86,8 +94,8 @@
     <div class="logo-sub">Gestión de inventario</div>
     <a class="nav-item" href="/">🏠 Dashboard</a>
     <a class="nav-item active" href="/productos/">📦 Productos</a>
-    <a class="nav-item" href="#">🛒 Registrar Venta</a>
-    <a class="nav-item" href="#">📊 Historial</a>
+    <a class="nav-item" href="/ventas/">🛒 Registrar Venta</a>
+    <a class="nav-item" href="/historial/">📊 Historial</a>
     <div class="sidebar-bottom">
         <div class="user-info">
             <div class="user-name">{{ request.user.username }}</div>
@@ -107,6 +115,27 @@
             + Nuevo producto
         </button>
     </div>
+
+    <!-- Filtros -->
+    <form method="get" action="/productos/" class="filters">
+        <input type="text" name="q" class="filter-input" placeholder="🔍 Buscar por nombre..." value="{{ q }}">
+        <select name="category" class="filter-select">
+            <option value="">Todas las categorías</option>
+            <option value="granos"  {% if category == 'granos'  %}selected{% endif %}>Granos y cereales</option>
+            <option value="aceites" {% if category == 'aceites' %}selected{% endif %}>Aceites</option>
+            <option value="aseo"    {% if category == 'aseo'    %}selected{% endif %}>Aseo</option>
+            <option value="lacteos" {% if category == 'lacteos' %}selected{% endif %}>Lácteos</option>
+            <option value="otros"   {% if category == 'otros'   %}selected{% endif %}>Otros</option>
+        </select>
+        <select name="estado" class="filter-select">
+            <option value="">Todos los estados</option>
+            <option value="urgente"   {% if estado == 'urgente'   %}selected{% endif %}>🚨 Urgente</option>
+            <option value="precaucion"{% if estado == 'precaucion'%}selected{% endif %}>⚠️ Precaución</option>
+            <option value="ok"        {% if estado == 'ok'        %}selected{% endif %}>✅ OK</option>
+        </select>
+        <button type="submit" class="btn-filter">Filtrar</button>
+        <a href="/productos/" class="btn-clear">Limpiar</a>
+    </form>
 
     {% if messages %}
     <div class="messages">
@@ -128,6 +157,7 @@
                 <th>Stock mín.</th>
                 <th>Lead time</th>
                 <th>Estado</th>
+                <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
@@ -136,11 +166,6 @@
                 <td><strong>{{ product.name }}</strong></td>
                 <td>{{ product.get_category_display }}</td>
                 <td>
-                    {% if product.safety_stock > 0 %}
-                        {% widthratio product.current_stock product.safety_stock 100 as pct %}
-                    {% else %}
-                        {% with pct=100 %}{% endwith %}
-                    {% endif %}
                     <div class="stock-bar">
                         <div class="stock-fill" style="width: {% if product.current_stock >= product.safety_stock %}100{% elif product.current_stock > 0 %}40{% else %}5{% endif %}%; background: {% if product.current_stock >= product.safety_stock %}#16A34A{% elif product.current_stock > 0 %}#CA8A04{% else %}#DC2626{% endif %};"></div>
                     </div>
@@ -157,6 +182,10 @@
                         <span class="badge badge-green">✅ OK</span>
                     {% endif %}
                 </td>
+                <td>
+                    <a href="/productos/{{ product.pk }}/editar/" class="btn-edit">✏️ Editar</a>
+                    <a href="/productos/{{ product.pk }}/eliminar/" class="btn-delete">🗑 Eliminar</a>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
@@ -164,8 +193,8 @@
     {% else %}
     <div class="empty-state">
         <p style="font-size: 2rem; margin-bottom: 12px;">📦</p>
-        <p style="font-weight: 600; margin-bottom: 8px;">No tienes productos registrados</p>
-        <p>Haz clic en "+ Nuevo producto" para empezar.</p>
+        <p style="font-weight: 600; margin-bottom: 8px;">No se encontraron productos</p>
+        <p>Intenta con otros filtros o crea un nuevo producto.</p>
     </div>
     {% endif %}
 </div>

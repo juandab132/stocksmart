@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockSmart — Editar Producto</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #F7F4EF; }
+        .sidebar {
+            position: fixed; left: 0; top: 0; bottom: 0; width: 240px;
+            background: #1C1917; padding: 24px 16px; display: flex; flex-direction: column;
+        }
+        .logo { font-size: 1.4rem; font-weight: 800; color: #D97706; margin-bottom: 4px; }
+        .logo-sub { font-size: 0.75rem; color: #78716C; margin-bottom: 32px; }
+        .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; color: #A8A29E; font-size: 0.9rem; margin-bottom: 4px; text-decoration: none; }
+        .nav-item.active, .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+        .sidebar-bottom { margin-top: auto; }
+        .user-info { padding: 12px 14px; border-top: 1px solid #292524; margin-bottom: 8px; }
+        .user-name { color: white; font-weight: 600; font-size: 0.9rem; }
+        .user-role { color: #78716C; font-size: 0.78rem; }
+        form.logout button { background: none; border: none; color: #78716C; font-size: 0.9rem; cursor: pointer; padding: 10px 14px; width: 100%; text-align: left; border-radius: 8px; }
+        form.logout button:hover { background: rgba(255,255,255,0.08); color: white; }
+        .main { margin-left: 240px; padding: 32px; }
+        .card { background: white; border-radius: 16px; padding: 32px; max-width: 600px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .page-title { font-size: 1.4rem; font-weight: 700; color: #1C1917; margin-bottom: 8px; }
+        .page-sub { color: #78716C; font-size: 0.9rem; margin-bottom: 28px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-group { margin-bottom: 18px; }
+        .form-label { display: block; font-size: 0.75rem; font-weight: 600; color: #78716C; text-transform: uppercase; margin-bottom: 6px; }
+        .form-input, .form-select { width: 100%; padding: 10px 14px; border: 1px solid #E2DDD6; border-radius: 8px; font-size: 0.9rem; color: #1C1917; outline: none; }
+        .form-input:focus, .form-select:focus { border-color: #D97706; }
+        .form-hint { font-size: 0.75rem; color: #A8A29E; margin-top: 4px; }
+        .btn-row { display: flex; gap: 12px; margin-top: 8px; }
+        .btn-primary { background: #D97706; color: white; border: none; padding: 11px 24px; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; }
+        .btn-primary:hover { background: #B45309; }
+        .btn-secondary { background: #F7F4EF; color: #1C1917; border: 1px solid #E2DDD6; padding: 11px 24px; border-radius: 8px; font-size: 0.95rem; cursor: pointer; text-decoration: none; }
+    </style>
+</head>
+<body>
+<div class="sidebar">
+    <div class="logo">StockSmart</div>
+    <div class="logo-sub">Gestión de inventario</div>
+    <a class="nav-item" href="/">🏠 Dashboard</a>
+    <a class="nav-item active" href="/productos/">📦 Productos</a>
+    <a class="nav-item" href="/ventas/">🛒 Registrar Venta</a>
+    <a class="nav-item" href="/historial/">📊 Historial</a>
+    <div class="sidebar-bottom">
+        <div class="user-info">
+            <div class="user-name">{{ request.user.username }}</div>
+            <div class="user-role">Administrador</div>
+        </div>
+        <form method="post" action="/logout/" class="logout">
+            {% csrf_token %}
+            <button type="submit">🚪 Cerrar sesión</button>
+        </form>
+    </div>
+</div>
+
+<div class="main">
+    <div class="card">
+        <div class="page-title">✏️ Editar Producto</div>
+        <div class="page-sub">Modificando: {{ product.name }}</div>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Nombre *</label>
+                    <input type="text" name="name" class="form-input" value="{{ product.name }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Categoría *</label>
+                    <select name="category" class="form-select" required>
+                        <option value="granos" {% if product.category == 'granos' %}selected{% endif %}>Granos y cereales</option>
+                        <option value="aceites" {% if product.category == 'aceites' %}selected{% endif %}>Aceites</option>
+                        <option value="aseo" {% if product.category == 'aseo' %}selected{% endif %}>Aseo</option>
+                        <option value="lacteos" {% if product.category == 'lacteos' %}selected{% endif %}>Lácteos</option>
+                        <option value="otros" {% if product.category == 'otros' %}selected{% endif %}>Otros</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Unidad *</label>
+                    <select name="unit" class="form-select" required>
+                        <option value="u" {% if product.unit == 'u' %}selected{% endif %}>Unidades</option>
+                        <option value="kg" {% if product.unit == 'kg' %}selected{% endif %}>Kilogramos</option>
+                        <option value="l" {% if product.unit == 'l' %}selected{% endif %}>Litros</option>
+                        <option value="g" {% if product.unit == 'g' %}selected{% endif %}>Gramos</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Stock actual *</label>
+                    <input type="number" name="current_stock" class="form-input" value="{{ product.current_stock }}" min="0" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Stock mínimo *</label>
+                    <input type="number" name="safety_stock" class="form-input" value="{{ product.safety_stock }}" min="0" required>
+                    <p class="form-hint">Cantidad que nunca debes bajar</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Lead time (días) *</label>
+                    <input type="number" name="lead_time_days" class="form-input" value="{{ product.lead_time_days }}" min="1" required>
+                    <p class="form-hint">Días que tarda tu proveedor</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Notas del proveedor</label>
+                <input type="text" name="notes" class="form-input" value="{{ product.notes }}">
+            </div>
+            <div class="btn-row">
+                <button type="submit" class="btn-primary">💾 Guardar cambios</button>
+                <a href="/productos/" class="btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

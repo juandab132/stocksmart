@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockSmart — Registrar Venta</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #F7F4EF; }
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 240px; background: #1C1917; padding: 24px 16px; display: flex; flex-direction: column; }
+        .logo { font-size: 1.4rem; font-weight: 800; color: #D97706; margin-bottom: 4px; }
+        .logo-sub { font-size: 0.75rem; color: #78716C; margin-bottom: 32px; }
+        .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; color: #A8A29E; font-size: 0.9rem; margin-bottom: 4px; text-decoration: none; }
+        .nav-item.active, .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+        .sidebar-bottom { margin-top: auto; }
+        .user-info { padding: 12px 14px; border-top: 1px solid #292524; margin-bottom: 8px; }
+        .user-name { color: white; font-weight: 600; font-size: 0.9rem; }
+        .user-role { color: #78716C; font-size: 0.78rem; }
+        form.logout button { background: none; border: none; color: #78716C; font-size: 0.9rem; cursor: pointer; padding: 10px 14px; width: 100%; text-align: left; border-radius: 8px; }
+        form.logout button:hover { background: rgba(255,255,255,0.08); color: white; }
+        .main { margin-left: 240px; padding: 32px; }
+        .page-title { font-size: 1.6rem; font-weight: 700; color: #1C1917; margin-bottom: 24px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .card { background: white; border-radius: 16px; padding: 28px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .card-title { font-size: 1rem; font-weight: 700; color: #1C1917; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #F0EDE8; }
+        .messages { margin-bottom: 20px; }
+        .msg-success { background: #DCFCE7; color: #16A34A; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; }
+        .msg-error   { background: #FEE2E2; color: #DC2626; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; }
+
+        /* Selector de productos */
+        .search-box { width: 100%; padding: 9px 14px; border: 1px solid #E2DDD6; border-radius: 8px; font-size: 0.88rem; margin-bottom: 12px; outline: none; }
+        .search-box:focus { border-color: #D97706; }
+        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 240px; overflow-y: auto; margin-bottom: 16px; }
+        .product-chip { padding: 10px 12px; border: 2px solid #E2DDD6; border-radius: 10px; cursor: pointer; transition: all 0.15s; }
+        .product-chip:hover { border-color: #D97706; background: #FFFBEB; }
+        .product-chip.selected { border-color: #D97706; background: #FEF3C7; }
+        .chip-name { font-size: 0.85rem; font-weight: 600; color: #1C1917; }
+        .chip-stock { font-size: 0.75rem; color: #78716C; margin-top: 2px; }
+
+        .form-label { display: block; font-size: 0.75rem; font-weight: 600; color: #78716C; text-transform: uppercase; margin-bottom: 6px; margin-top: 14px; }
+        .form-input { width: 100%; padding: 10px 14px; border: 1px solid #E2DDD6; border-radius: 8px; font-size: 0.9rem; color: #1C1917; outline: none; }
+        .form-input:focus { border-color: #D97706; }
+
+        /* Control cantidad */
+        .qty-control { display: flex; align-items: center; gap: 12px; }
+        .qty-btn { width: 36px; height: 36px; border: 1px solid #E2DDD6; border-radius: 8px; background: white; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .qty-btn:hover { background: #F7F4EF; border-color: #D97706; }
+        .qty-display { font-size: 1.4rem; font-weight: 700; color: #1C1917; min-width: 40px; text-align: center; }
+
+        .btn-row { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-primary { background: #D97706; color: white; border: none; padding: 11px 24px; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; flex: 1; }
+        .btn-primary:hover { background: #B45309; }
+        .btn-secondary { background: #F7F4EF; color: #78716C; border: 1px solid #E2DDD6; padding: 11px 20px; border-radius: 8px; font-size: 0.95rem; cursor: pointer; }
+        .btn-secondary:hover { background: #E2DDD6; }
+
+        /* Tabla ventas hoy */
+        table { width: 100%; border-collapse: collapse; }
+        th { padding: 10px 12px; text-align: left; color: #A8A29E; font-size: 0.72rem; text-transform: uppercase; border-bottom: 2px solid #F0EDE8; }
+        td { padding: 12px; border-bottom: 1px solid #F0EDE8; font-size: 0.88rem; color: #1C1917; }
+        tr:last-child td { border-bottom: none; }
+        .btn-del { color: #DC2626; background: none; border: none; cursor: pointer; font-size: 0.85rem; }
+        .btn-del:hover { color: #B91C1C; }
+        .empty-ventas { text-align: center; padding: 32px; color: #A8A29E; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="logo">StockSmart</div>
+    <div class="logo-sub">Gestión de inventario</div>
+    <a class="nav-item" href="/">🏠 Dashboard</a>
+    <a class="nav-item" href="/productos/">📦 Productos</a>
+    <a class="nav-item active" href="/ventas/">🛒 Registrar Venta</a>
+    <a class="nav-item" href="/historial/">📊 Historial</a>
+    <div class="sidebar-bottom">
+        <div class="user-info">
+            <div class="user-name">{{ request.user.username }}</div>
+            <div class="user-role">Administrador</div>
+        </div>
+        <form method="post" action="/logout/" class="logout">
+            {% csrf_token %}
+            <button type="submit">🚪 Cerrar sesión</button>
+        </form>
+    </div>
+</div>
+
+<div class="main">
+    <div class="page-title">🛒 Registrar Venta</div>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="{% if message.tags == 'success' %}msg-success{% else %}msg-error{% endif %}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="grid">
+        <!-- Formulario -->
+        <div class="card">
+            <div class="card-title">Nueva venta</div>
+            <form method="post" action="/ventas/">
+                {% csrf_token %}
+                <input type="hidden" name="product_id" id="product_id">
+
+                <label class="form-label">1. Selecciona el producto</label>
+                <input type="text" class="search-box" placeholder="🔍 Buscar producto..." oninput="filterChips(this.value)">
+                <div class="product-grid" id="product-grid">
+                    {% for product in products %}
+                    <div class="product-chip" onclick="selectProduct({{ product.pk }}, '{{ product.name }}', this)">
+                        <div class="chip-name">{{ product.name }}</div>
+                        <div class="chip-stock">Stock: {{ product.current_stock }} {{ product.unit }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <label class="form-label">2. Cantidad vendida</label>
+                <div class="qty-control">
+                    <button type="button" class="qty-btn" onclick="changeQty(-1)">−</button>
+                    <div class="qty-display" id="qty-display">1</div>
+                    <button type="button" class="qty-btn" onclick="changeQty(1)">+</button>
+                </div>
+                <input type="hidden" name="quantity" id="quantity" value="1">
+
+                <label class="form-label">3. Fecha de la venta *</label>
+                <input type="date" name="sale_date" class="form-input" value="{{ today }}" required>
+
+                <label class="form-label">Notas (opcional)</label>
+                <input type="text" name="notes" class="form-input" placeholder="Ej: venta por mayor...">
+
+                <div class="btn-row">
+                    <button type="submit" class="btn-primary">💾 Guardar venta</button>
+                    <button type="button" class="btn-secondary" onclick="resetForm()">🔄 Limpiar</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Ventas de hoy -->
+        <div class="card">
+            <div class="card-title">Ventas de hoy — {{ today }}</div>
+            {% if ventas_hoy %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Hora</th>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for venta in ventas_hoy %}
+                    <tr>
+                        <td style="color:#78716C;">{{ venta.created_at|time:"H:i" }}</td>
+                        <td><strong>{{ venta.product.name }}</strong></td>
+                        <td>{{ venta.quantity_sold }} {{ venta.product.unit }}</td>
+                        <td>
+                            <form method="post" action="/ventas/{{ venta.pk }}/eliminar/" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-del" onclick="return confirm('¿Eliminar esta venta?')">🗑</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-ventas">
+                <p style="font-size:2rem; margin-bottom:8px;">🛒</p>
+                <p>No hay ventas registradas hoy</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    let qty = 1;
+
+    function changeQty(delta) {
+        qty = Math.max(1, qty + delta);
+        document.getElementById('qty-display').textContent = qty;
+        document.getElementById('quantity').value = qty;
+    }
+
+    function selectProduct(id, name, el) {
+        document.querySelectorAll('.product-chip').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        document.getElementById('product_id').value = id;
+    }
+
+    function filterChips(query) {
+        const chips = document.querySelectorAll('.product-chip');
+        chips.forEach(chip => {
+            const name = chip.querySelector('.chip-name').textContent.toLowerCase();
+            chip.style.display = name.includes(query.toLowerCase()) ? 'block' : 'none';
+        });
+    }
+
+    function resetForm() {
+        document.querySelectorAll('.product-chip').forEach(c => c.classList.remove('selected'));
+        document.getElementById('product_id').value = '';
+        qty = 1;
+        document.getElementById('qty-display').textContent = '1';
+        document.getElementById('quantity').value = '1';
+    }
+</script>
+
+</body>
+</html>
