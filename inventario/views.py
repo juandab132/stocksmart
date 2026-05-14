@@ -5,16 +5,18 @@ from django.db import models
 from django.utils import timezone
 from .models import Product, Sale
 from .forms import ProductForm
+from .calculator import calculate_recommendation
 
 @login_required
 def dashboard(request):
     products = Product.objects.filter(user=request.user, is_active=True)
-    total = products.count()
-    urgentes = products.filter(current_stock__lte=0).count()
-    precaucion = products.filter(current_stock__gt=0, current_stock__lte=models.F('safety_stock')).count()
-    ok = total - urgentes - precaucion
+    recomendaciones = [calculate_recommendation(p) for p in products]
+    urgentes   = [r for r in recomendaciones if r['alert_level'] == 'red']
+    precaucion = [r for r in recomendaciones if r['alert_level'] == 'yellow']
+    ok         = [r for r in recomendaciones if r['alert_level'] == 'green']
     return render(request, 'inventario/dashboard.html', {
-        'total': total, 'urgentes': urgentes, 'precaucion': precaucion, 'ok': ok,
+        'urgentes': urgentes, 'precaucion': precaucion,
+        'ok': ok, 'total': len(recomendaciones),
     })
 
 @login_required
@@ -82,13 +84,11 @@ def ventas(request):
         product__user=request.user,
         sale_date=today
     ).order_by('-created_at')
-
     if request.method == 'POST':
         product_id = request.POST.get('product_id')
         quantity   = request.POST.get('quantity')
         sale_date  = request.POST.get('sale_date')
         notes      = request.POST.get('notes', '')
-
         if not product_id:
             messages.error(request, '⚠️ Debes seleccionar un producto.')
         elif not sale_date:
@@ -105,7 +105,6 @@ def ventas(request):
             )
             messages.success(request, f'✅ Venta de {quantity} {product.unit} de "{product.name}" registrada.')
             return redirect('ventas')
-
     return render(request, 'inventario/ventas.html', {
         'products': products,
         'ventas_hoy': ventas_hoy,
