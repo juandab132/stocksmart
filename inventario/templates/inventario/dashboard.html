@@ -39,8 +39,6 @@
         .stat-num { font-size: 2rem; font-weight: 800; }
         .stat-label { font-size: 0.8rem; color: #78716C; margin-top: 4px; }
         .red { color: #DC2626; } .yellow { color: #CA8A04; } .green { color: #16A34A; }
-        form.logout button { background: none; border: none; color: #78716C; font-size: 0.9rem; cursor: pointer; padding: 10px 14px; width: 100%; text-align: left; border-radius: 8px; }
-        form.logout button:hover { background: rgba(255,255,255,0.08); color: white; }
         .alert-section { margin-bottom: 24px; }
         .section-title { font-size: 1rem; font-weight: 700; color: #1C1917; margin-bottom: 12px; }
         .alert-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-radius: 12px; margin-bottom: 8px; }
@@ -55,6 +53,18 @@
         .trend-up     { color: #16A34A; font-weight: 600; }
         .trend-down   { color: #DC2626; font-weight: 600; }
         .trend-stable { color: #78716C; }
+        .btn-ordered {
+            background: #1C1917; color: white; border: none;
+            padding: 8px 16px; border-radius: 8px; font-size: 0.85rem;
+            font-weight: 600; cursor: pointer; white-space: nowrap;
+        }
+        .btn-ordered:hover { background: #292524; }
+        .ordered { opacity: 0.5; }
+        .ordered-badge {
+            background: #DCFCE7; color: #16A34A;
+            padding: 6px 12px; border-radius: 8px;
+            font-size: 0.82rem; font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -104,7 +114,7 @@
         <div class="alert-section">
             <div class="section-title">🚨 Pedidos urgentes — pedir hoy</div>
             {% for r in urgentes %}
-            <div class="alert-row red-row">
+            <div class="alert-row red-row {% if r.ordered %}ordered{% endif %}">
                 <div class="alert-info">
                     <div class="alert-name">{{ r.product.name }}</div>
                     <div class="alert-meta">
@@ -115,9 +125,19 @@
                         Solo {{ r.days_remaining }} días de stock
                     </div>
                 </div>
-                <div class="alert-rec">
-                    <div class="rec-qty">{{ r.to_order }}</div>
-                    <div class="rec-label">{{ r.product.unit }} a pedir</div>
+                <div style="display:flex; align-items:center; gap:16px;">
+                    <div class="alert-rec">
+                        <div class="rec-qty">{{ r.to_order }}</div>
+                        <div class="rec-label">{{ r.product.unit }} a pedir</div>
+                    </div>
+                    {% if not r.ordered %}
+                    <form method="post" action="/productos/{{ r.product.pk }}/pedido/">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-ordered">✓ Pedido</button>
+                    </form>
+                    {% else %}
+                    <span class="ordered-badge">✅ Realizado</span>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}
@@ -128,7 +148,7 @@
         <div class="alert-section">
             <div class="section-title">⚠️ Pedir esta semana</div>
             {% for r in precaucion %}
-            <div class="alert-row yellow-row">
+            <div class="alert-row yellow-row {% if r.ordered %}ordered{% endif %}">
                 <div class="alert-info">
                     <div class="alert-name">{{ r.product.name }}</div>
                     <div class="alert-meta">
@@ -138,9 +158,19 @@
                         {{ r.days_remaining }} días de stock
                     </div>
                 </div>
-                <div class="alert-rec">
-                    <div class="rec-qty">{{ r.to_order }}</div>
-                    <div class="rec-label">{{ r.product.unit }} a pedir</div>
+                <div style="display:flex; align-items:center; gap:16px;">
+                    <div class="alert-rec">
+                        <div class="rec-qty">{{ r.to_order }}</div>
+                        <div class="rec-label">{{ r.product.unit }} a pedir</div>
+                    </div>
+                    {% if not r.ordered %}
+                    <form method="post" action="/productos/{{ r.product.pk }}/pedido/">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-ordered">✓ Pedido</button>
+                    </form>
+                    {% else %}
+                    <span class="ordered-badge">✅ Realizado</span>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}

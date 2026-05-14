@@ -6,6 +6,7 @@ from django.utils import timezone
 from .models import Product, Sale
 from .forms import ProductForm
 from .calculator import calculate_recommendation
+from .models import Product, Sale, Recommendation
 
 @login_required
 def dashboard(request):
@@ -122,3 +123,13 @@ def venta_delete(request, pk):
 @login_required
 def historial(request):
     return render(request, 'inventario/historial.html')
+
+@login_required
+def mark_ordered(request, pk):
+    product = get_object_or_404(Product, pk=pk, user=request.user)
+    if request.method == 'POST':
+        rec, created = Recommendation.objects.get_or_create(product=product)
+        rec.status = 'ordered'
+        rec.save()
+        messages.success(request, f'✅ Pedido de "{product.name}" marcado como realizado.')
+    return redirect('dashboard')

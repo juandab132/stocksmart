@@ -38,3 +38,16 @@ class Sale(models.Model):
 
     def __str__(self):
         return f"{self.product} - {self.quantity_sold} u - {self.sale_date}"
+    
+class Recommendation(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pendiente'),
+        ('ordered', 'Pedido realizado'),
+    ]
+    product    = models.ForeignKey(Product, on_delete=models.CASCADE)
+    status     = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.product.name} - {self.status}"
