@@ -59,12 +59,41 @@
             font-weight: 600; cursor: pointer; white-space: nowrap;
         }
         .btn-ordered:hover { background: #292524; }
+        .btn-ver {
+            background: white; color: #1C1917; border: 1px solid #E2DDD6;
+            padding: 8px 14px; border-radius: 8px; font-size: 0.85rem;
+            font-weight: 600; cursor: pointer; white-space: nowrap;
+        }
+        .btn-ver:hover { background: #F7F4EF; }
         .ordered { opacity: 0.5; }
         .ordered-badge {
             background: #DCFCE7; color: #16A34A;
             padding: 6px 12px; border-radius: 8px;
             font-size: 0.82rem; font-weight: 600;
         }
+
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; }
+        .modal-overlay.open { display: flex; }
+        .modal { background: white; border-radius: 16px; width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
+        .modal-header { background: #1C1917; padding: 20px 24px; border-radius: 16px 16px 0 0; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header-title { font-weight: 700; font-size: 1.1rem; color: white; }
+        .modal-header-sub { font-size: 0.8rem; color: #A8A29E; margin-top: 2px; }
+        .modal-close { background: none; border: none; color: #A8A29E; font-size: 1.4rem; cursor: pointer; }
+        .modal-close:hover { color: white; }
+        .modal-body { padding: 24px; }
+        .metrics-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .metric-card { background: #F7F4EF; border-radius: 10px; padding: 14px; }
+        .metric-label { font-size: 0.72rem; color: #78716C; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; }
+        .metric-value { font-size: 1.3rem; font-weight: 800; color: #1C1917; }
+        .metric-sub { font-size: 0.72rem; color: #A8A29E; margin-top: 2px; }
+        .formula-box { background: #1C1917; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+        .formula-line { font-family: 'Courier New', monospace; font-size: 0.82rem; color: #FEF3C7; margin-bottom: 6px; }
+        .formula-line.result { color: #D97706; font-weight: 700; font-size: 0.95rem; border-top: 1px solid #292524; padding-top: 8px; margin-top: 8px; }
+        .modal-footer { padding: 16px 24px; border-top: 1px solid #F0EDE8; display: flex; gap: 10px; justify-content: flex-end; }
+        .btn-primary { background: #D97706; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+        .btn-primary:hover { background: #B45309; }
+        .btn-secondary { background: #F7F4EF; color: #1C1917; border: 1px solid #E2DDD6; padding: 10px 20px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -125,11 +154,12 @@
                         Solo {{ r.days_remaining }} días de stock
                     </div>
                 </div>
-                <div style="display:flex; align-items:center; gap:16px;">
+                <div style="display:flex; align-items:center; gap:10px;">
                     <div class="alert-rec">
                         <div class="rec-qty">{{ r.to_order }}</div>
                         <div class="rec-label">{{ r.product.unit }} a pedir</div>
                     </div>
+                    <button class="btn-ver" onclick="openDetail({{ r.product.pk }})">📊 Ver</button>
                     {% if not r.ordered %}
                     <form method="post" action="/productos/{{ r.product.pk }}/pedido/">
                         {% csrf_token %}
@@ -158,11 +188,12 @@
                         {{ r.days_remaining }} días de stock
                     </div>
                 </div>
-                <div style="display:flex; align-items:center; gap:16px;">
+                <div style="display:flex; align-items:center; gap:10px;">
                     <div class="alert-rec">
                         <div class="rec-qty">{{ r.to_order }}</div>
                         <div class="rec-label">{{ r.product.unit }} a pedir</div>
                     </div>
+                    <button class="btn-ver" onclick="openDetail({{ r.product.pk }})">📊 Ver</button>
                     {% if not r.ordered %}
                     <form method="post" action="/productos/{{ r.product.pk }}/pedido/">
                         {% csrf_token %}
@@ -202,7 +233,126 @@
             No tienes productos registrados. <a href="/productos/" style="color:#D97706;">Agregar productos →</a>
         </p>
         {% endif %}
-
     </div>
+
+    <!-- Modal de detalle -->
+    <div class="modal-overlay" id="modal-detail">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-header-title" id="modal-product-name">Cargando...</div>
+                    <div class="modal-header-sub">Detalle del cálculo de recomendación</div>
+                </div>
+                <button class="modal-close" onclick="closeDetail()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Promedio diario</div>
+                        <div class="metric-value" id="m-avg">—</div>
+                        <div class="metric-sub">unidades/día (30 días)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Factor tendencia</div>
+                        <div class="metric-value" id="m-trend">—</div>
+                        <div class="metric-sub" id="m-trend-label">—</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Lead time</div>
+                        <div class="metric-value" id="m-lead">—</div>
+                        <div class="metric-sub">días del proveedor</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Stock actual</div>
+                        <div class="metric-value" id="m-stock">—</div>
+                        <div class="metric-sub" id="m-unit-stock">unidades</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Stock mínimo</div>
+                        <div class="metric-value" id="m-safety">—</div>
+                        <div class="metric-sub">de seguridad</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Días restantes</div>
+                        <div class="metric-value" id="m-days">—</div>
+                        <div class="metric-sub">de cobertura</div>
+                    </div>
+                </div>
+
+                <div class="formula-box">
+                    <div class="formula-line">// Fórmula de cálculo paso a paso</div>
+                    <div class="formula-line" id="f-step1">—</div>
+                    <div class="formula-line" id="f-step2">—</div>
+                    <div class="formula-line" id="f-step3">—</div>
+                    <div class="formula-line result" id="f-result">—</div>
+                </div>
+
+                <div id="modal-alert-badge" style="text-align:center; font-size:1.1rem; font-weight:700; padding:8px; border-radius:8px;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeDetail()">Cerrar</button>
+                <button class="btn-primary" id="btn-modal-pedido" onclick="marcarPedidoDesdeModal()">✓ Marcar como pedido</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentProductId = null;
+
+        function openDetail(productId) {
+            currentProductId = productId;
+            document.getElementById('modal-detail').classList.add('open');
+            document.getElementById('modal-product-name').textContent = 'Cargando...';
+
+            fetch(`/productos/${productId}/detalle/`)
+                .then(res => res.json())
+                .then(d => {
+                    document.getElementById('modal-product-name').textContent = d.name;
+                    document.getElementById('m-avg').textContent    = d.avg_daily;
+                    document.getElementById('m-trend').textContent  = d.trend_factor;
+                    document.getElementById('m-trend-label').textContent = d.trend_label;
+                    document.getElementById('m-lead').textContent   = d.lead_time_days;
+                    document.getElementById('m-stock').textContent  = d.current_stock;
+                    document.getElementById('m-unit-stock').textContent = d.unit;
+                    document.getElementById('m-safety').textContent = d.safety_stock;
+                    document.getElementById('m-days').textContent   = d.days_remaining;
+
+                    document.getElementById('f-step1').textContent =
+                        `promedio = ${d.total_30} u / 30 días = ${d.avg_daily} u/día`;
+                    document.getElementById('f-step2').textContent =
+                        `tendencia = ${d.ventas_recientes} (recientes) / ${d.ventas_anteriores} (anteriores) = ${d.trend_factor}`;
+                    document.getElementById('f-step3').textContent =
+                        `proyectado = ${d.avg_daily} × ${d.trend_factor} × ${d.lead_time_days} días = ${d.projected}`;
+                    document.getElementById('f-result').textContent =
+                        `a pedir = ${d.projected} + ${d.safety_stock} (mín) − ${d.current_stock} (actual) = ${d.to_order} ${d.unit}`;
+
+                    const badge = document.getElementById('modal-alert-badge');
+                    badge.textContent = d.alert_label;
+                    badge.style.background = d.alert_label.includes('Urgente') ? '#FEE2E2' :
+                                             d.alert_label.includes('Precaución') ? '#FEF9C3' : '#DCFCE7';
+                    badge.style.color = d.alert_label.includes('Urgente') ? '#DC2626' :
+                                        d.alert_label.includes('Precaución') ? '#CA8A04' : '#16A34A';
+                });
+        }
+
+        function closeDetail() {
+            document.getElementById('modal-detail').classList.remove('open');
+            currentProductId = null;
+        }
+
+        function marcarPedidoDesdeModal() {
+            if (!currentProductId) return;
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/productos/${currentProductId}/pedido/`;
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = 'csrfmiddlewaretoken';
+            csrf.value = '{{ csrf_token }}';
+            form.appendChild(csrf);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    </script>
 </body>
 </html>
